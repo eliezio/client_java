@@ -6,7 +6,8 @@ import static org.mockserver.model.HttpResponse.response;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Gauge;
-import java.io.IOException;;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.TreeMap;
 import java.util.Map;
 import org.junit.Assert;
@@ -25,12 +26,12 @@ public class PushGatewayTest {
   CollectorRegistry registry;
   Gauge gauge;
   PushGateway pg;
-  Map groupingKey;
+  Map<String, String> groupingKey;
 
   @Before
   public void setUp() {
     registry = new CollectorRegistry();
-    gauge = (Gauge) Gauge.build().name("g").help("help").create();
+    gauge = Gauge.build().name("g").help("help").create();
     pg = new PushGateway("localhost:" + mockServerRule.getHttpPort());
     groupingKey = new TreeMap<String, String>();
     groupingKey.put("l", "v");
@@ -177,7 +178,7 @@ public class PushGatewayTest {
           .withMethod("PUT")
           .withPath("/metrics/job/j/instance/")
       ).respond(response().withStatusCode(202));
-    pg.push(registry, "j", "");
+    pg.push(registry, "j", Collections.singletonMap("instance", ""));
   }
 
   @Test
@@ -187,7 +188,7 @@ public class PushGatewayTest {
           .withMethod("PUT")
           .withPath("/metrics/job/j/instance/i")
       ).respond(response().withStatusCode(202));
-    pg.push(registry, "j", "i");
+    pg.push(registry, "j", Collections.singletonMap("instance", "i"));
   }
 
   @Test(expected=IOException.class)
@@ -197,7 +198,7 @@ public class PushGatewayTest {
           .withMethod("PUT")
           .withPath("/metrics/job/j/instance/i")
       ).respond(response().withStatusCode(500));
-    pg.push(registry,"j", "i");
+    pg.push(registry, "j", Collections.singletonMap("instance", "i"));
   }
 
   @Test
@@ -207,7 +208,7 @@ public class PushGatewayTest {
           .withMethod("PUT")
           .withPath("/metrics/job/a%2Fb/instance/c%2Fd")
       ).respond(response().withStatusCode(202));
-    pg.push(registry, "a/b", "c/d");
+    pg.push(registry, "a/b", Collections.singletonMap("instance", "c/d"));
   }
 
   @Test
@@ -217,7 +218,7 @@ public class PushGatewayTest {
           .withMethod("PUT")
           .withPath("/metrics/job/j/instance/i")
       ).respond(response().withStatusCode(202));
-    pg.push(gauge, "j", "i");
+    pg.push(gauge, "j", Collections.singletonMap("instance", "i"));
   }
 
   @Test
@@ -227,7 +228,7 @@ public class PushGatewayTest {
           .withMethod("POST")
           .withPath("/metrics/job/j/instance/i")
       ).respond(response().withStatusCode(202));
-    pg.pushAdd(registry, "j", "i");
+    pg.pushAdd(registry, "j", Collections.singletonMap("instance", "i"));
   }
 
   @Test
@@ -237,7 +238,7 @@ public class PushGatewayTest {
           .withMethod("POST")
           .withPath("/metrics/job/j/instance/i")
       ).respond(response().withStatusCode(202));
-    pg.pushAdd(gauge, "j", "i");
+    pg.pushAdd(gauge, "j", Collections.singletonMap("instance", "i"));
   }
 
   @Test
@@ -247,7 +248,7 @@ public class PushGatewayTest {
           .withMethod("DELETE")
           .withPath("/metrics/job/j/instance/i")
       ).respond(response().withStatusCode(202));
-    pg.delete("j", "i");
+    pg.delete("j", Collections.singletonMap("instance", "i"));
   }
 
   @Test
